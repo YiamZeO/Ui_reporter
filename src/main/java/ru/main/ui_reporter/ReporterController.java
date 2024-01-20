@@ -386,6 +386,7 @@ public class ReporterController {
                 alert.getDialogPane().getStylesheets().add(
                         getClass().getResource("/ru/main/ui_reporter/styles/main.css").toExternalForm());
                 alert.getDialogPane().setExpandableContent(expContent);
+                alert.setResizable(true);
                 alert.showAndWait();
                 throw new RuntimeException(e);
             }
@@ -883,13 +884,13 @@ public class ReporterController {
         if (!isTextArea){
             alert.setContentText(content);
         } else {
-            alert.setResizable(true);
             TextArea textArea = new TextArea(content);
             textArea.setEditable(false);
             textArea.setWrapText(true);
             VBox reportContent = new VBox(textArea);
             alert.getDialogPane().setContent(reportContent);
         }
+        alert.setResizable(true);
         alert.getDialogPane().setStyle("-fx-font-size: 14px; -fx-background-color: #ffffff;");
         alert.getDialogPane().getStylesheets().add(
                 getClass().getResource("/ru/main/ui_reporter/styles/main.css").toExternalForm());
@@ -977,6 +978,7 @@ public class ReporterController {
                     alert.getDialogPane().setStyle("-fx-font-size: 14px; -fx-background-color: #ffffff;");
                     alert.getDialogPane().getStylesheets().add(
                             getClass().getResource("/ru/main/ui_reporter/styles/main.css").toExternalForm());
+                    alert.setResizable(true);
                     alert.showAndWait();
                     throw new RuntimeException(e);
                 }
