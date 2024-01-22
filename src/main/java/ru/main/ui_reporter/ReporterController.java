@@ -60,7 +60,7 @@ public class ReporterController {
     private CheckBox extraHoursCheckBox;
 
     @FXML
-    private Spinner<Integer> hoursSpinner;
+    private Spinner<Double> hoursSpinner;
 
     @FXML
     private Button loadReportsButton;
@@ -142,7 +142,7 @@ public class ReporterController {
 
     @FXML
     void initialize() {
-        hoursSpinner.setValueFactory(new SpinnerValueFactory.IntegerSpinnerValueFactory(1, 8));
+        hoursSpinner.setValueFactory(new SpinnerValueFactory.DoubleSpinnerValueFactory(1, 8));
         startDatePicker.setOnAction(actionEvent -> endDatePickerDisableControl());
         sendReportButton.setOnMouseClicked(mouseEvent -> sendReport());
         changeUserButton.setOnMouseClicked(mouseEvent -> changeUserControl());
@@ -350,7 +350,7 @@ public class ReporterController {
                                 .findFirst();
                         reportEntities.add(ReportEntity.builder()
                                 .date(LocalDate.parse(((String) report.get("day")).substring(0, 10)))
-                                .hours(Double.valueOf((String) report.get("hours")).longValue())
+                                .hours(Double.valueOf((String) report.get("hours")))
                                 .projectName(project.isPresent() ?
                                         project.get().getName() : "Неизвестный проект (нужно добавить)")
                                 .action(action.isPresent() ?

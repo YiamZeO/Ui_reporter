@@ -10,7 +10,7 @@ import java.time.LocalDate;
 public class ReportEntity {
     private LocalDate date;
     private String projectName;
-    private Long hours;
+    private Double hours;
     private Long id;
     private String description;
     private String action;
