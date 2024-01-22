@@ -142,7 +142,7 @@ public class ReporterController {
 
     @FXML
     void initialize() {
-        hoursSpinner.setValueFactory(new SpinnerValueFactory.DoubleSpinnerValueFactory(1, 8, 8, 0.1));
+        hoursSpinner.setValueFactory(new SpinnerValueFactory.DoubleSpinnerValueFactory(1, 8, 8, 0.5));
         startDatePicker.setOnAction(actionEvent -> endDatePickerDisableControl());
         sendReportButton.setOnMouseClicked(mouseEvent -> sendReport());
         changeUserButton.setOnMouseClicked(mouseEvent -> changeUserControl());
@@ -269,42 +269,10 @@ public class ReporterController {
                                 .toString();
                         createAlert(Alert.AlertType.INFORMATION, "Отчет"
                                 , "Информация об отчете за " + rowData.getDate(), content, true);
-//                        Alert alert = new Alert(Alert.AlertType.INFORMATION);
-//                        ((Stage) alert.getDialogPane().getScene().getWindow()).getIcons().add(new Image("file:report_icon.png"));
-//                        alert.setTitle("Отчет");
-//                        alert.setHeaderText("Информация об отчете за " + rowData.getDate());
-//                        String content = new StringBuilder()
-//                                .append("Дата: ").append(rowData.getDate()).append('\n')
-//                                .append("Проект: ").append(rowData.getProjectName()).append('\n')
-//                                .append("Действие: ").append(rowData.getAction()).append('\n')
-//                                .append("Часы: ").append(rowData.getHours()).append('\n')
-//                                .append("Описание: ").append(rowData.getDescription()).append('\n')
-//                                .append("Сверхурочные: ").append(rowData.getExtraHours() ? "Да" : "Нет").append('\n')
-//                                .append("Id отчета: ").append(rowData.getId())
-//                                .toString();
-//                        alert.getDialogPane().setStyle("-fx-font-size: 14px; -fx-background-color: #ffffff;");
-//                        alert.getDialogPane().getStylesheets().add(
-//                                getClass().getResource("/ru/main/ui_reporter/styles/main.css").toExternalForm());
-//                        alert.setResizable(true);
-//                        TextArea textArea = new TextArea(content);
-//                        textArea.setEditable(false);
-//                        textArea.setWrapText(true);
-//                        VBox reportContent = new VBox(textArea);
-//                        alert.getDialogPane().setContent(reportContent);
-//                        alert.showAndWait();
                     } else if (event.getButton().equals(MouseButton.SECONDARY)){
                         Optional<ButtonType> result = createAlert(Alert.AlertType.CONFIRMATION, "Отчет",
                                 "Перейти к изменению отчета за " + rowData.getDate() + " в Reporter ? ",
                                 null, false);
-//                        Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
-//                        ((Stage) alert.getDialogPane().getScene().getWindow()).getIcons().add(new Image("file:report_icon.png"));
-//                        alert.setTitle("Отчет");
-//                        alert.setHeaderText("Перейти к изменению отчета за " + rowData.getDate() + " в Reporter ? ");
-//                        alert.setContentText(null);
-//                        alert.getDialogPane().setStyle("-fx-font-size: 14px; -fx-background-color: #ffffff;");
-//                        alert.getDialogPane().getStylesheets().add(
-//                                getClass().getResource("/ru/main/ui_reporter/styles/main.css").toExternalForm());
-//                        Optional<ButtonType> result = alert.showAndWait();
                         if (result.isPresent() && result.get() == ButtonType.OK) {
                             hostServices.showDocument("https://reporter.corp.local/report_edit/" + rowData.getId());
                         }
@@ -417,27 +385,9 @@ public class ReporterController {
         if (!isDatesCorrect) {
             createAlert(Alert.AlertType.ERROR, "Ошибка", null,
                     "Даты установлены неправильно", false);
-//            Alert alert = new Alert(Alert.AlertType.ERROR);
-//            ((Stage) alert.getDialogPane().getScene().getWindow()).getIcons().add(new Image("file:report_icon.png"));
-//            alert.setTitle("Ошибка");
-//            alert.setHeaderText(null);
-//            alert.setContentText("Даты установлены неправильно");
-//            alert.getDialogPane().setStyle("-fx-font-size: 14px; -fx-background-color: #ffffff;");
-//            alert.getDialogPane().getStylesheets().add(
-//                    getClass().getResource("/ru/main/ui_reporter/styles/main.css").toExternalForm());
-//            alert.showAndWait();
         } else if (!isNotEmpty) {
             createAlert(Alert.AlertType.ERROR, "Ошибка", null,
                     "Не все поля заполнены", false);
-//            Alert alert = new Alert(Alert.AlertType.ERROR);
-//            ((Stage) alert.getDialogPane().getScene().getWindow()).getIcons().add(new Image("file:report_icon.png"));
-//            alert.setTitle("Ошибка");
-//            alert.setHeaderText(null);
-//            alert.setContentText("Не все поля заполнены");
-//            alert.getDialogPane().setStyle("-fx-font-size: 14px; -fx-background-color: #ffffff;");
-//            alert.getDialogPane().getStylesheets().add(
-//                    getClass().getResource("/ru/main/ui_reporter/styles/main.css").toExternalForm());
-//            alert.showAndWait();
         }
         return (isNotEmpty && isDatesCorrect);
     }
@@ -471,15 +421,6 @@ public class ReporterController {
             } catch (Exception e) {
                 createAlert(Alert.AlertType.ERROR, "Ошибка", null,
                         "Не удалось сохранить проекты пользователя", false);
-//                Alert alert = new Alert(Alert.AlertType.ERROR);
-//                ((Stage) alert.getDialogPane().getScene().getWindow()).getIcons().add(new Image("file:report_icon.png"));
-//                alert.setTitle("Ошибка");
-//                alert.setHeaderText(null);
-//                alert.setContentText("Не удалось сохранить проекты пользователя");
-//                alert.getDialogPane().setStyle("-fx-font-size: 14px; -fx-background-color: #ffffff;");
-//                alert.getDialogPane().getStylesheets().add(
-//                        getClass().getResource("/ru/main/ui_reporter/styles/main.css").toExternalForm());
-//                alert.showAndWait();
                 throw new RuntimeException(e);
             }
         }
@@ -500,15 +441,6 @@ public class ReporterController {
         } else {
             Optional<ButtonType> result = createAlert(Alert.AlertType.CONFIRMATION, "Подтвердите удаление", null,
                     "Будут удалены все проекты. Вы уверены ?", false);
-//            Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
-//            ((Stage) alert.getDialogPane().getScene().getWindow()).getIcons().add(new Image("file:report_icon.png"));
-//            alert.setTitle("Подтвердите удаление");
-//            alert.setHeaderText(null);
-//            alert.setContentText("Будут удалены все проекты. Вы уверены ?");
-//            alert.getDialogPane().setStyle("-fx-font-size: 14px; -fx-background-color: #ffffff;");
-//            alert.getDialogPane().getStylesheets().add(
-//                    getClass().getResource("/ru/main/ui_reporter/styles/main.css").toExternalForm());
-//            Optional<ButtonType> result = alert.showAndWait();
             if (result.isPresent() && result.get() == ButtonType.OK) {
                 projects.clear();
                 projectsTable.setItems(FXCollections.observableList(projects));
@@ -520,15 +452,6 @@ public class ReporterController {
         } catch (Exception e) {
             createAlert(Alert.AlertType.ERROR, "Ошибка", null,
                     "Не удалось сохранить проекты пользователя", false);
-//            Alert alert = new Alert(Alert.AlertType.ERROR);
-//            ((Stage) alert.getDialogPane().getScene().getWindow()).getIcons().add(new Image("file:report_icon.png"));
-//            alert.setTitle("Ошибка");
-//            alert.setHeaderText(null);
-//            alert.setContentText("Не удалось сохранить проекты пользователя");
-//            alert.getDialogPane().setStyle("-fx-font-size: 14px; -fx-background-color: #ffffff;");
-//            alert.getDialogPane().getStylesheets().add(
-//                    getClass().getResource("/ru/main/ui_reporter/styles/main.css").toExternalForm());
-//            alert.showAndWait();
             throw new RuntimeException(e);
         }
     }
@@ -556,15 +479,6 @@ public class ReporterController {
             } catch (Exception e) {
                 createAlert(Alert.AlertType.ERROR, "Ошибка", null,
                         "Не удалось сохранить действия пользователя", false);
-//                Alert alert = new Alert(Alert.AlertType.ERROR);
-//                ((Stage) alert.getDialogPane().getScene().getWindow()).getIcons().add(new Image("file:report_icon.png"));
-//                alert.setTitle("Ошибка");
-//                alert.setHeaderText(null);
-//                alert.setContentText("Не удалось сохранить действия пользователя");
-//                alert.getDialogPane().setStyle("-fx-font-size: 14px; -fx-background-color: #ffffff;");
-//                alert.getDialogPane().getStylesheets().add(
-//                        getClass().getResource("/ru/main/ui_reporter/styles/main.css").toExternalForm());
-//                alert.showAndWait();
                 throw new RuntimeException(e);
             }
         }
@@ -585,15 +499,6 @@ public class ReporterController {
         } else {
             Optional<ButtonType> result = createAlert(Alert.AlertType.CONFIRMATION, "Подтвердите удаление", null,
                     "Будут удалены все действия. Вы уверены ?", false);
-//            Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
-//            ((Stage) alert.getDialogPane().getScene().getWindow()).getIcons().add(new Image("file:report_icon.png"));
-//            alert.setTitle("Подтвердите удаление");
-//            alert.setHeaderText(null);
-//            alert.setContentText("Будут удалены все действия. Вы уверены ?");
-//            alert.getDialogPane().setStyle("-fx-font-size: 14px; -fx-background-color: #ffffff;");
-//            alert.getDialogPane().getStylesheets().add(
-//                    getClass().getResource("/ru/main/ui_reporter/styles/main.css").toExternalForm());
-//            Optional<ButtonType> result = alert.showAndWait();
             if (result.isPresent() && result.get() == ButtonType.OK) {
                 actions.clear();
                 actionsTable.setItems(FXCollections.observableList(actions));
@@ -605,15 +510,6 @@ public class ReporterController {
         } catch (Exception e) {
             createAlert(Alert.AlertType.ERROR, "Ошибка", null,
                     "Не удалось сохранить действия пользователя", false);
-//            Alert alert = new Alert(Alert.AlertType.ERROR);
-//            ((Stage) alert.getDialogPane().getScene().getWindow()).getIcons().add(new Image("file:report_icon.png"));
-//            alert.setTitle("Ошибка");
-//            alert.setHeaderText(null);
-//            alert.setContentText("Не удалось сохранить действия пользователя");
-//            alert.getDialogPane().setStyle("-fx-font-size: 14px; -fx-background-color: #ffffff;");
-//            alert.getDialogPane().getStylesheets().add(
-//                    getClass().getResource("/ru/main/ui_reporter/styles/main.css").toExternalForm());
-//            alert.showAndWait();
             throw new RuntimeException(e);
         }
     }
@@ -662,15 +558,6 @@ public class ReporterController {
             } catch (IOException e) {
                 createAlert(Alert.AlertType.ERROR, "Ошибка", null,
                         "Не удалось сохранить данные пользователя", false);
-//                Alert alert = new Alert(Alert.AlertType.ERROR);
-//                ((Stage) alert.getDialogPane().getScene().getWindow()).getIcons().add(new Image("file:report_icon.png"));
-//                alert.setTitle("Ошибка");
-//                alert.setHeaderText(null);
-//                alert.setContentText("Не удалось сохранить данные пользователя");
-//                alert.getDialogPane().setStyle("-fx-font-size: 14px; -fx-background-color: #ffffff;");
-//                alert.getDialogPane().getStylesheets().add(
-//                        getClass().getResource("/ru/main/ui_reporter/styles/main.css").toExternalForm());
-//                alert.showAndWait();
                 throw new RuntimeException(e);
             }
             changeUserControl();
@@ -694,15 +581,6 @@ public class ReporterController {
         if (!isNotEmpty) {
             createAlert(Alert.AlertType.ERROR, "Ошибка", null,
                     "Не все поля заполнены", false);
-//            Alert alert = new Alert(Alert.AlertType.ERROR);
-//            ((Stage) alert.getDialogPane().getScene().getWindow()).getIcons().add(new Image("file:report_icon.png"));
-//            alert.setTitle("Ошибка");
-//            alert.setHeaderText(null);
-//            alert.setContentText("Не все поля заполнены");
-//            alert.getDialogPane().setStyle("-fx-font-size: 14px; -fx-background-color: #ffffff;");
-//            alert.getDialogPane().getStylesheets().add(
-//                    getClass().getResource("/ru/main/ui_reporter/styles/main.css").toExternalForm());
-//            alert.showAndWait();
         }
         return isNotEmpty;
     }
@@ -758,27 +636,9 @@ public class ReporterController {
         if (!isDatesCorrect) {
             createAlert(Alert.AlertType.ERROR, "Ошибка", null,
                     "Даты установлены неправильно", false);
-//            Alert alert = new Alert(Alert.AlertType.ERROR);
-//            ((Stage) alert.getDialogPane().getScene().getWindow()).getIcons().add(new Image("file:report_icon.png"));
-//            alert.setTitle("Ошибка");
-//            alert.setHeaderText(null);
-//            alert.setContentText("Даты установлены неправильно");
-//            alert.getDialogPane().setStyle("-fx-font-size: 14px; -fx-background-color: #ffffff;");
-//            alert.getDialogPane().getStylesheets().add(
-//                    getClass().getResource("/ru/main/ui_reporter/styles/main.css").toExternalForm());
-//            alert.showAndWait();
         } else if (!isNotEmpty) {
             createAlert(Alert.AlertType.ERROR, "Ошибка", null,
                     "Не все поля заполнены", false);
-//            Alert alert = new Alert(Alert.AlertType.ERROR);
-//            ((Stage) alert.getDialogPane().getScene().getWindow()).getIcons().add(new Image("file:report_icon.png"));
-//            alert.setTitle("Ошибка");
-//            alert.setHeaderText(null);
-//            alert.setContentText("Не все поля заполнены");
-//            alert.getDialogPane().setStyle("-fx-font-size: 14px; -fx-background-color: #ffffff;");
-//            alert.getDialogPane().getStylesheets().add(
-//                    getClass().getResource("/ru/main/ui_reporter/styles/main.css").toExternalForm());
-//            alert.showAndWait();
         }
         return (isNotEmpty && isDatesCorrect);
     }
@@ -803,15 +663,6 @@ public class ReporterController {
             createAlert(Alert.AlertType.ERROR, "Ошибка", null,
                     "Id для указанного действия не найден. Имя может быть написано некорректно или данное действие не существует",
                     false);
-//            Alert alert = new Alert(Alert.AlertType.ERROR);
-//            ((Stage) alert.getDialogPane().getScene().getWindow()).getIcons().add(new Image("file:report_icon.png"));
-//            alert.setTitle("Ошибка");
-//            alert.setHeaderText(null);
-//            alert.setContentText("Id для указанного действия не найден. Имя может быть написано некорректно или данное действие не существует");
-//            alert.getDialogPane().setStyle("-fx-font-size: 14px; -fx-background-color: #ffffff;");
-//            alert.getDialogPane().getStylesheets().add(
-//                    getClass().getResource("/ru/main/ui_reporter/styles/main.css").toExternalForm());
-//            alert.showAndWait();
             throw new RuntimeException(e);
         }
     }
@@ -836,15 +687,6 @@ public class ReporterController {
             createAlert(Alert.AlertType.ERROR, "Ошибка", null,
                     "Id для указанного проекта не найден. Имя может быть написано некорректно или данный проект не существует",
                     false);
-//            Alert alert = new Alert(Alert.AlertType.ERROR);
-//            ((Stage) alert.getDialogPane().getScene().getWindow()).getIcons().add(new Image("file:report_icon.png"));
-//            alert.setTitle("Ошибка");
-//            alert.setHeaderText(null);
-//            alert.setContentText("Id для указанного проекта не найден. Имя может быть написано некорректно или данный проект не существует");
-//            alert.getDialogPane().setStyle("-fx-font-size: 14px; -fx-background-color: #ffffff;");
-//            alert.getDialogPane().getStylesheets().add(
-//                    getClass().getResource("/ru/main/ui_reporter/styles/main.css").toExternalForm());
-//            alert.showAndWait();
             throw new RuntimeException(e);
         }
     }
@@ -913,15 +755,6 @@ public class ReporterController {
                 createAlert(Alert.AlertType.ERROR, "Ошибка", null,
                         "Указанный проект отсутствует в списке доступных проектов",
                         false);
-//                Alert alert = new Alert(Alert.AlertType.ERROR);
-//                ((Stage) alert.getDialogPane().getScene().getWindow()).getIcons().add(new Image("file:report_icon.png"));
-//                alert.setTitle("Ошибка");
-//                alert.setHeaderText(null);
-//                alert.setContentText("Указанный проект отсутствует в списке доступных проектов");
-//                alert.getDialogPane().setStyle("-fx-font-size: 14px; -fx-background-color: #ffffff;");
-//                alert.getDialogPane().getStylesheets().add(
-//                        getClass().getResource("/ru/main/ui_reporter/styles/main.css").toExternalForm());
-//                alert.showAndWait();
                 throw new RuntimeException("[ERROR] Указанный проект отсутствует в списке доступных проектов");
             }
             if (action.isPresent())
@@ -930,15 +763,6 @@ public class ReporterController {
                 createAlert(Alert.AlertType.ERROR, "Ошибка", null,
                         "Указанное действие отсутствует в списке доступных действий",
                         false);
-//                Alert alert = new Alert(Alert.AlertType.ERROR);
-//                ((Stage) alert.getDialogPane().getScene().getWindow()).getIcons().add(new Image("file:report_icon.png"));
-//                alert.setTitle("Ошибка");
-//                alert.setHeaderText(null);
-//                alert.setContentText("Указанное действие отсутствует в списке доступных действий");
-//                alert.getDialogPane().setStyle("-fx-font-size: 14px; -fx-background-color: #ffffff;");
-//                alert.getDialogPane().getStylesheets().add(
-//                        getClass().getResource("/ru/main/ui_reporter/styles/main.css").toExternalForm());
-//                alert.showAndWait();
                 throw new RuntimeException("[ERROR] Указанное действие отсутствует в списке доступных действий");
             }
             report.put("work_after", extraHoursCheckBox.isSelected() ? 1 : 0);
@@ -986,15 +810,6 @@ public class ReporterController {
             createAlert(Alert.AlertType.INFORMATION, "Успешно", null,
                     "Отчет загружен успешно",
                     false);
-//            Alert alert = new Alert(Alert.AlertType.INFORMATION);
-//            ((Stage) alert.getDialogPane().getScene().getWindow()).getIcons().add(new Image("file:report_icon.png"));
-//            alert.setTitle("Успешно");
-//            alert.setHeaderText(null);
-//            alert.setContentText("Отчет загружен успешно");
-//            alert.getDialogPane().setStyle("-fx-font-size: 14px; -fx-background-color: #ffffff;");
-//            alert.getDialogPane().getStylesheets().add(
-//                    getClass().getResource("/ru/main/ui_reporter/styles/main.css").toExternalForm());
-//            alert.showAndWait();
         }
     }
 }
