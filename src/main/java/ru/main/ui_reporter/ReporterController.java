@@ -142,7 +142,7 @@ public class ReporterController {
 
     @FXML
     void initialize() {
-        hoursSpinner.setValueFactory(new SpinnerValueFactory.DoubleSpinnerValueFactory(1, 8));
+        hoursSpinner.setValueFactory(new SpinnerValueFactory.DoubleSpinnerValueFactory(1, 8, 8, 0.1));
         startDatePicker.setOnAction(actionEvent -> endDatePickerDisableControl());
         sendReportButton.setOnMouseClicked(mouseEvent -> sendReport());
         changeUserButton.setOnMouseClicked(mouseEvent -> changeUserControl());
