@@ -1,7 +1,6 @@
 package ru.main.ui_reporter;
 
 import javafx.application.Application;
-import javafx.application.HostServices;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
@@ -24,6 +23,7 @@ public class ReporterApplication extends Application {
         stage.setScene(scene);
         stage.getIcons().add(new Image("file:report_icon.png"));
         stage.show();
+        controller.postInitialize();
     }
 
     public static void main(String[] args) {

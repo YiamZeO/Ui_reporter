@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.ComboBox?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.Spinner?>
+<?import javafx.scene.control.TextArea?>
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.text.Font?>
+
+<AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="424.0" prefWidth="515.0" style="-fx-background-color: #ffffff;" stylesheets="@styles/main.css" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="ru.main.ui_reporter.ChangeReportController">
+    <children>
+        <Label layoutX="21.0" layoutY="21.0" prefHeight="52.0" prefWidth="153.0" text="Название проекта:">
+            <font>
+                <Font size="14.0" />
+            </font>
+        </Label>
+        <Label layoutX="21.0" layoutY="73.0" prefHeight="52.0" prefWidth="153.0" text="Действие:">
+            <font>
+                <Font size="14.0" />
+            </font>
+        </Label>
+        <Label layoutX="21.0" layoutY="114.0" prefHeight="52.0" prefWidth="153.0" text="Описание:">
+            <font>
+                <Font size="14.0" />
+            </font>
+        </Label>
+        <Label layoutX="21.0" layoutY="251.0" prefHeight="52.0" prefWidth="153.0" text="Затраченные часы:">
+            <font>
+                <Font size="14.0" />
+            </font>
+        </Label>
+        <TextArea id="descriptionTextArea" fx:id="descriptionArea" layoutX="164.0" layoutY="128.0" prefHeight="114.0" prefWidth="333.0" promptText="Описание" wrapText="true">
+            <font>
+                <Font size="14.0" />
+            </font>
+        </TextArea>
+        <Spinner id="hoursSpinner" fx:id="hoursSpinner" editable="true" layoutX="164.0" layoutY="262.0" styleClass="arrows-on-right-horizontal" />
+        <Button id="changeReportButton" fx:id="changeReportButton" layoutX="21.0" layoutY="344.0" mnemonicParsing="false" prefHeight="46.0" prefWidth="141.0" stylesheets="@styles/main.css" text="Изменить отчет" textFill="WHITE">
+            <font>
+                <Font size="14.0" />
+            </font>
+        </Button>
+        <ComboBox id="projectsBox" fx:id="projectsBox" editable="true" layoutX="164.0" layoutY="32.0" prefHeight="30.0" prefWidth="329.0" promptText="Проект" />
+        <ComboBox id="actionsBox" fx:id="actionsBox" editable="true" layoutX="164.0" layoutY="84.0" prefHeight="30.0" prefWidth="329.0" promptText="Действие" />
+        <Button id="deleteReportButton" fx:id="deleteReportButton" layoutX="213.0" layoutY="344.0" mnemonicParsing="false" prefHeight="46.0" prefWidth="124.0" stylesheets="@styles/main.css" text="Удалить отчет" textFill="WHITE">
+            <font>
+                <Font size="14.0" />
+            </font>
+        </Button>
+        <Button id="canselButton" fx:id="canselButton" layoutX="388.0" layoutY="344.0" mnemonicParsing="false" prefHeight="46.0" prefWidth="95.0" stylesheets="@styles/main.css" text="Отмена" textFill="WHITE">
+            <font>
+                <Font size="14.0" />
+            </font>
+        </Button>
+    </children>
+</AnchorPane>

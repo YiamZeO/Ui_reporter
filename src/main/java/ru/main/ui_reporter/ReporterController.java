@@ -6,7 +6,6 @@ import com.google.gson.reflect.TypeToken;
 import javafx.application.HostServices;
 import javafx.collections.FXCollections;
 import javafx.fxml.FXML;
-import javafx.scene.Node;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.image.Image;
@@ -16,20 +15,14 @@ import javafx.scene.input.KeyCode;
 import javafx.scene.input.MouseButton;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.Priority;
-import javafx.scene.layout.VBox;
+import javafx.stage.Modality;
 import javafx.stage.Stage;
 import okhttp3.*;
 
-import javax.net.ssl.SSLContext;
-import javax.net.ssl.TrustManager;
-import javax.net.ssl.X509TrustManager;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.lang.reflect.Type;
-import java.security.KeyManagementException;
-import java.security.NoSuchAlgorithmException;
-import java.security.cert.X509Certificate;
 import java.time.LocalDate;
 import java.util.*;
 
@@ -40,6 +33,12 @@ public class ReporterController {
 
     @FXML
     private TableView<TableEntity> actionsTable;
+
+    @FXML
+    private Tab userTab;
+
+    @FXML
+    private TabPane tabPane;
 
     @FXML
     private Button changeUserButton;
@@ -130,14 +129,14 @@ public class ReporterController {
 
     private HostServices hostServices;
 
-    private Stage stage;
+    private Stage currentStage;
 
     public void initHostServices(HostServices hostServices) {
         this.hostServices = hostServices;
     }
 
     public void initStage(Stage stage) {
-        this.stage = stage;
+        this.currentStage = stage;
     }
 
     @FXML
@@ -205,7 +204,7 @@ public class ReporterController {
         reportProjectName.setCellValueFactory(new PropertyValueFactory<ReportEntity, String>("projectName"));
         TableColumn<ReportEntity, Long> reportHours = new TableColumn<>("Часы");
         reportHours.setCellValueFactory(new PropertyValueFactory<ReportEntity, Long>("hours"));
-                reportsTable.getSelectionModel().setCellSelectionEnabled(true);
+        reportsTable.getSelectionModel().setCellSelectionEnabled(true);
         reportsTable.getColumns().addAll(
                 reportDate,
                 reportProjectName,
@@ -256,26 +255,26 @@ public class ReporterController {
             TableRow<ReportEntity> row = new TableRow<>();
             row.setOnMouseClicked(event -> {
                 ReportEntity rowData = row.getItem();
-                if (!row.isEmpty()){
+                if (!row.isEmpty()) {
                     if (event.getButton().equals(MouseButton.PRIMARY)) {
-                        String content = new StringBuilder()
-                                .append("Дата: ").append(rowData.getDate()).append('\n')
-                                .append("Проект: ").append(rowData.getProjectName()).append('\n')
-                                .append("Действие: ").append(rowData.getAction()).append('\n')
-                                .append("Часы: ").append(rowData.getHours()).append('\n')
-                                .append("Описание: ").append(rowData.getDescription()).append('\n')
-                                .append("Сверхурочные: ").append(rowData.getExtraHours() ? "Да" : "Нет").append('\n')
-                                .append("Id отчета: ").append(rowData.getId())
-                                .toString();
-                        createAlert(Alert.AlertType.INFORMATION, "Отчет"
-                                , "Информация об отчете за " + rowData.getDate(), content, true);
-                    } else if (event.getButton().equals(MouseButton.SECONDARY)){
-                        Optional<ButtonType> result = createAlert(Alert.AlertType.CONFIRMATION, "Отчет",
-                                "Перейти к изменению отчета за " + rowData.getDate() + " в Reporter ? ",
-                                null, false);
-                        if (result.isPresent() && result.get() == ButtonType.OK) {
-                            hostServices.showDocument("https://reporter.corp.local/report_edit/" + rowData.getId());
+                        Stage stage = new Stage();
+                        stage.initModality(Modality.WINDOW_MODAL);
+                        stage.initOwner(currentStage);
+                        ChangeReportWindow changeReportWindow = new ChangeReportWindow();
+                        try {
+                            changeReportWindow.start(stage);
+                        } catch (Exception e) {
+                            throw new RuntimeException(e);
                         }
+                        ChangeReportController changeReportController = changeReportWindow.getChangeReportController();
+                        changeReportController.setCurrentReportEntity(rowData);
+                        changeReportController.setProjects(projects);
+                        changeReportController.setActions(actions);
+                        changeReportController.setUserLogin(userLogin);
+                        changeReportController.setUserToken(userToken);
+                        changeReportController.setHostServices(hostServices);
+                        changeReportController.setReporterController(this);
+                        changeReportController.postInitialize();
                     }
                 }
             });
@@ -283,9 +282,18 @@ public class ReporterController {
         });
     }
 
-    private void loadReports() {
+    public void postInitialize(){
+        if (userLogin == null || userLogin.isEmpty() || userToken == null || userToken.isEmpty()){
+            UtilityClass.createAlert(Alert.AlertType.INFORMATION, "Заполните данные", null,
+                    "Перед началом работы с отчетами необходимо заполнить данные пользователя в соответствующей вкладке",
+                    false, this.getClass());
+            tabPane.getSelectionModel().select(userTab);
+        }
+    }
+
+    public void loadReports() {
         if (checkReportsDate()) {
-            OkHttpClient client = getDummyClient();
+            OkHttpClient client = UtilityClass.getDummyClient();
             Map<String, Object> requestBody = new HashMap<>();
             requestBody.put("token", userToken);
             requestBody.put("employee", userLogin);
@@ -383,11 +391,11 @@ public class ReporterController {
             endDatePicker1.setStyle("-fx-border-color: transparent;");
         }
         if (!isDatesCorrect) {
-            createAlert(Alert.AlertType.ERROR, "Ошибка", null,
-                    "Даты установлены неправильно", false);
+            UtilityClass.createAlert(Alert.AlertType.ERROR, "Ошибка", null,
+                    "Даты установлены неправильно", false, this.getClass());
         } else if (!isNotEmpty) {
-            createAlert(Alert.AlertType.ERROR, "Ошибка", null,
-                    "Не все поля заполнены", false);
+            UtilityClass.createAlert(Alert.AlertType.ERROR, "Ошибка", null,
+                    "Не все поля заполнены", false, this.getClass());
         }
         return (isNotEmpty && isDatesCorrect);
     }
@@ -419,8 +427,8 @@ public class ReporterController {
             try (FileWriter writer = new FileWriter("projects.json")) {
                 gson.toJson(projects, writer);
             } catch (Exception e) {
-                createAlert(Alert.AlertType.ERROR, "Ошибка", null,
-                        "Не удалось сохранить проекты пользователя", false);
+                UtilityClass.createAlert(Alert.AlertType.ERROR, "Ошибка", null,
+                        "Не удалось сохранить проекты пользователя", false, this.getClass());
                 throw new RuntimeException(e);
             }
         }
@@ -439,8 +447,8 @@ public class ReporterController {
             projects = newProjects;
             projectsTable.setItems(FXCollections.observableList(projects));
         } else {
-            Optional<ButtonType> result = createAlert(Alert.AlertType.CONFIRMATION, "Подтвердите удаление", null,
-                    "Будут удалены все проекты. Вы уверены ?", false);
+            Optional<ButtonType> result = UtilityClass.createAlert(Alert.AlertType.CONFIRMATION, "Подтвердите удаление", null,
+                    "Будут удалены все проекты. Вы уверены ?", false, this.getClass());
             if (result.isPresent() && result.get() == ButtonType.OK) {
                 projects.clear();
                 projectsTable.setItems(FXCollections.observableList(projects));
@@ -450,8 +458,8 @@ public class ReporterController {
         try (FileWriter writer = new FileWriter("projects.json")) {
             gson.toJson(projects, writer);
         } catch (Exception e) {
-            createAlert(Alert.AlertType.ERROR, "Ошибка", null,
-                    "Не удалось сохранить проекты пользователя", false);
+            UtilityClass.createAlert(Alert.AlertType.ERROR, "Ошибка", null,
+                    "Не удалось сохранить проекты пользователя", false, this.getClass());
             throw new RuntimeException(e);
         }
     }
@@ -477,8 +485,8 @@ public class ReporterController {
             try (FileWriter writer = new FileWriter("actions.json")) {
                 gson.toJson(actions, writer);
             } catch (Exception e) {
-                createAlert(Alert.AlertType.ERROR, "Ошибка", null,
-                        "Не удалось сохранить действия пользователя", false);
+                UtilityClass.createAlert(Alert.AlertType.ERROR, "Ошибка", null,
+                        "Не удалось сохранить действия пользователя", false, this.getClass());
                 throw new RuntimeException(e);
             }
         }
@@ -497,8 +505,8 @@ public class ReporterController {
             actions = newActions;
             actionsTable.setItems(FXCollections.observableList(actions));
         } else {
-            Optional<ButtonType> result = createAlert(Alert.AlertType.CONFIRMATION, "Подтвердите удаление", null,
-                    "Будут удалены все действия. Вы уверены ?", false);
+            Optional<ButtonType> result = UtilityClass.createAlert(Alert.AlertType.CONFIRMATION, "Подтвердите удаление", null,
+                    "Будут удалены все действия. Вы уверены ?", false, this.getClass());
             if (result.isPresent() && result.get() == ButtonType.OK) {
                 actions.clear();
                 actionsTable.setItems(FXCollections.observableList(actions));
@@ -508,8 +516,8 @@ public class ReporterController {
         try (FileWriter writer = new FileWriter("actions.json")) {
             gson.toJson(actions, writer);
         } catch (Exception e) {
-            createAlert(Alert.AlertType.ERROR, "Ошибка", null,
-                    "Не удалось сохранить действия пользователя", false);
+            UtilityClass.createAlert(Alert.AlertType.ERROR, "Ошибка", null,
+                    "Не удалось сохранить действия пользователя", false, this.getClass());
             throw new RuntimeException(e);
         }
     }
@@ -556,8 +564,8 @@ public class ReporterController {
             try (FileWriter writer = new FileWriter("user.json")) {
                 gson.toJson(userMap, writer);
             } catch (IOException e) {
-                createAlert(Alert.AlertType.ERROR, "Ошибка", null,
-                        "Не удалось сохранить данные пользователя", false);
+                UtilityClass.createAlert(Alert.AlertType.ERROR, "Ошибка", null,
+                        "Не удалось сохранить данные пользователя", false, this.getClass());
                 throw new RuntimeException(e);
             }
             changeUserControl();
@@ -579,8 +587,8 @@ public class ReporterController {
             tokenField.setStyle("-fx-border-color: transparent;");
         }
         if (!isNotEmpty) {
-            createAlert(Alert.AlertType.ERROR, "Ошибка", null,
-                    "Не все поля заполнены", false);
+            UtilityClass.createAlert(Alert.AlertType.ERROR, "Ошибка", null,
+                    "Не все поля заполнены", false, this.getClass());
         }
         return isNotEmpty;
     }
@@ -634,17 +642,17 @@ public class ReporterController {
             hoursSpinner.setStyle("-fx-border-color: transparent;");
         }
         if (!isDatesCorrect) {
-            createAlert(Alert.AlertType.ERROR, "Ошибка", null,
-                    "Даты установлены неправильно", false);
+            UtilityClass.createAlert(Alert.AlertType.ERROR, "Ошибка", null,
+                    "Даты установлены неправильно", false, this.getClass());
         } else if (!isNotEmpty) {
-            createAlert(Alert.AlertType.ERROR, "Ошибка", null,
-                    "Не все поля заполнены", false);
+            UtilityClass.createAlert(Alert.AlertType.ERROR, "Ошибка", null,
+                    "Не все поля заполнены", false, this.getClass());
         }
         return (isNotEmpty && isDatesCorrect);
     }
 
     private Long getActionId(String actionName) {
-        OkHttpClient client = getDummyClient();
+        OkHttpClient client = UtilityClass.getDummyClient();
         HttpUrl apiUrl = Objects.requireNonNull(HttpUrl.parse("https://reporter.corp.local/api/task_types"))
                 .newBuilder()
                 .addQueryParameter("title", actionName)
@@ -660,15 +668,15 @@ public class ReporterController {
             List<Map<String, Object>> responseData = gson.fromJson(response.body().string(), type);
             return ((Double) responseData.get(0).get("id")).longValue();
         } catch (Exception e) {
-            createAlert(Alert.AlertType.ERROR, "Ошибка", null,
+            UtilityClass.createAlert(Alert.AlertType.ERROR, "Ошибка", null,
                     "Id для указанного действия не найден. Имя может быть написано некорректно или данное действие не существует",
-                    false);
+                    false, this.getClass());
             throw new RuntimeException(e);
         }
     }
 
     private Long getProjectId(String projectName) {
-        OkHttpClient client = getDummyClient();
+        OkHttpClient client = UtilityClass.getDummyClient();
         HttpUrl apiUrl = Objects.requireNonNull(HttpUrl.parse("https://reporter.corp.local/api/projects"))
                 .newBuilder()
                 .addQueryParameter("title", projectName)
@@ -684,64 +692,16 @@ public class ReporterController {
             List<Map<String, Object>> responseData = gson.fromJson(response.body().string(), type);
             return ((Double) responseData.get(0).get("id")).longValue();
         } catch (Exception e) {
-            createAlert(Alert.AlertType.ERROR, "Ошибка", null,
+            UtilityClass.createAlert(Alert.AlertType.ERROR, "Ошибка", null,
                     "Id для указанного проекта не найден. Имя может быть написано некорректно или данный проект не существует",
-                    false);
+                    false, this.getClass());
             throw new RuntimeException(e);
         }
-    }
-
-    private OkHttpClient getDummyClient() {
-        TrustManager[] trustAllCerts = new TrustManager[]{
-                new X509TrustManager() {
-                    public X509Certificate[] getAcceptedIssuers() {
-                        return new X509Certificate[0];
-                    }
-
-                    public void checkClientTrusted(X509Certificate[] certs, String authType) {
-                    }
-
-                    public void checkServerTrusted(X509Certificate[] certs, String authType) {
-                    }
-                }
-        };
-        SSLContext sslContext = null;
-        try {
-            sslContext = SSLContext.getInstance("TLS");
-            sslContext.init(null, trustAllCerts, new java.security.SecureRandom());
-        } catch (NoSuchAlgorithmException | KeyManagementException e) {
-            throw new RuntimeException(e);
-        }
-        return new OkHttpClient.Builder()
-                .sslSocketFactory(sslContext.getSocketFactory(), (X509TrustManager) trustAllCerts[0])
-                .hostnameVerifier((hostname, session) -> true)
-                .build();
-    }
-
-    private Optional<ButtonType> createAlert(Alert.AlertType alertType, String title, String header, String content, boolean isTextArea){
-        Alert alert = new Alert(alertType);
-        ((Stage) alert.getDialogPane().getScene().getWindow()).getIcons().add(new Image("file:report_icon.png"));
-        alert.setTitle(title);
-        alert.setHeaderText(header);
-        if (!isTextArea){
-            alert.setContentText(content);
-        } else {
-            TextArea textArea = new TextArea(content);
-            textArea.setEditable(false);
-            textArea.setWrapText(true);
-            VBox reportContent = new VBox(textArea);
-            alert.getDialogPane().setContent(reportContent);
-        }
-        alert.setResizable(true);
-        alert.getDialogPane().setStyle("-fx-font-size: 14px; -fx-background-color: #ffffff;");
-        alert.getDialogPane().getStylesheets().add(
-                getClass().getResource("/ru/main/ui_reporter/styles/main.css").toExternalForm());
-        return alert.showAndWait();
     }
 
     private void sendReport() {
         if (checkProjectsData()) {
-            OkHttpClient client = getDummyClient();
+            OkHttpClient client = UtilityClass.getDummyClient();
             Map<String, Object> report = new HashMap<>();
             Optional<TableEntity> project = projects.stream().filter(p -> Objects.equals(p.getName(), projectsBox.getEditor().getText())).findFirst();
             Optional<TableEntity> action = actions.stream().filter(a -> Objects.equals(a.getName(), actionsBox.getEditor().getText())).findFirst();
@@ -752,17 +712,17 @@ public class ReporterController {
             if (project.isPresent())
                 report.put("project", project.get().getId());
             else {
-                createAlert(Alert.AlertType.ERROR, "Ошибка", null,
+                UtilityClass.createAlert(Alert.AlertType.ERROR, "Ошибка", null,
                         "Указанный проект отсутствует в списке доступных проектов",
-                        false);
+                        false, this.getClass());
                 throw new RuntimeException("[ERROR] Указанный проект отсутствует в списке доступных проектов");
             }
             if (action.isPresent())
                 report.put("taskType", action.get().getId());
             else {
-                createAlert(Alert.AlertType.ERROR, "Ошибка", null,
+                UtilityClass.createAlert(Alert.AlertType.ERROR, "Ошибка", null,
                         "Указанное действие отсутствует в списке доступных действий",
-                        false);
+                        false, this.getClass());
                 throw new RuntimeException("[ERROR] Указанное действие отсутствует в списке доступных действий");
             }
             report.put("work_after", extraHoursCheckBox.isSelected() ? 1 : 0);
@@ -807,9 +767,9 @@ public class ReporterController {
                     throw new RuntimeException(e);
                 }
             }
-            createAlert(Alert.AlertType.INFORMATION, "Успешно", null,
+            UtilityClass.createAlert(Alert.AlertType.INFORMATION, "Успешно", null,
                     "Отчет загружен успешно",
-                    false);
+                    false, this.getClass());
         }
     }
 }
