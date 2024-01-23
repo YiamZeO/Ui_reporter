@@ -62,10 +62,15 @@ public class ChangeReportController {
     private ReporterController reporterController;
 
     @FXML
+    private TextField reportDate;
+
+    @FXML
     void initialize() {
     }
 
     public void postInitialize() {
+        reportDate.setText(currentReportEntity.getDate().toString());
+
         hoursSpinner.setValueFactory(new SpinnerValueFactory.DoubleSpinnerValueFactory(1, 8, currentReportEntity.getHours(), 0.5));
 
         projectsBox.setItems(FXCollections.observableArrayList(projects.stream().map(TableEntity::getName).toList()));

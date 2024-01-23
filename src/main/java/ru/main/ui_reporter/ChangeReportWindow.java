@@ -20,8 +20,8 @@ public class ChangeReportWindow extends Application {
         Parent root = fxmlLoader.load();
         changeReportController = fxmlLoader.getController();
         changeReportController.setCurrentStage(stage);
-        Scene scene = new Scene(root, 515, 424);
-        stage.setTitle("Reporter");
+        Scene scene = new Scene(root, 515, 475);
+        stage.setTitle("Изменение отчета");
         stage.setResizable(false);
         stage.setScene(scene);
         stage.getIcons().add(new Image("file:report_icon.png"));
