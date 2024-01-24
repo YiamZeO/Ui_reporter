@@ -83,9 +83,7 @@ public class ChangeReportController {
 
         descriptionArea.setText(currentReportEntity.getDescription());
 
-        canselButton.setOnMouseClicked(mouseEvent -> {
-            currentStage.close();
-        });
+        canselButton.setOnMouseClicked(mouseEvent -> currentStage.close());
 
         deleteReportButton.setOnMouseClicked(mouseEvent -> {
             hostServices.showDocument("https://reporter.corp.local/report_delete/" + currentReportEntity.getId());
@@ -137,7 +135,8 @@ public class ChangeReportController {
         try {
             Response response = client.newCall(request).execute();
             if (!response.isSuccessful())
-                throw new RuntimeException("Отчет: " + requestBody + " не создан. Причина: " + response.body().string());
+                throw new RuntimeException("Отчет: " + requestBody + " не создан. Причина: " + Objects.requireNonNull(response.body()).string());
+            response.close();
         } catch (Exception e) {
             Alert alert = new Alert(Alert.AlertType.ERROR);
             ((Stage) alert.getDialogPane().getScene().getWindow()).getIcons().add(new Image("file:report_icon.png"));
@@ -157,7 +156,7 @@ public class ChangeReportController {
             alert.getDialogPane().setExpandableContent(expContent);
             alert.getDialogPane().setStyle("-fx-font-size: 14px; -fx-background-color: #ffffff;");
             alert.getDialogPane().getStylesheets().add(
-                    getClass().getResource("/ru/main/ui_reporter/styles/main.css").toExternalForm());
+                    Objects.requireNonNull(getClass().getResource("/ru/main/ui_reporter/styles/main.css")).toExternalForm());
             alert.setResizable(true);
             alert.showAndWait();
             throw new RuntimeException(e);

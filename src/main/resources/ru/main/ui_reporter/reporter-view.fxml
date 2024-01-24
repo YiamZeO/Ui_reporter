@@ -17,7 +17,7 @@
 
 <TabPane id="tabPane" fx:id="tabPane" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="620.0" prefWidth="515.0" stylesheets="@styles/main.css" tabClosingPolicy="UNAVAILABLE" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="ru.main.ui_reporter.ReporterController">
     <tabs>
-        <Tab text="Отправка отчетов">
+        <Tab id="sendReportsTab" fx:id="sendReportsTab" text="Отправка отчетов">
             <content>
                 <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="854.0" prefWidth="1156.0">
                     <children>
@@ -110,6 +110,40 @@
                 </AnchorPane>
             </content>
         </Tab>
+      <Tab text="Незаполненные дни">
+         <content>
+            <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="180.0" prefWidth="200.0">
+               <children>
+                  <TableView id="emptyReports" fx:id="emptyReports" layoutX="8.0" layoutY="141.0" prefHeight="432.0" prefWidth="498.0" stylesheets="@styles/main.css">
+                     <columns>
+                        <TableColumn prefWidth="103.0" text="Дата" />
+                        <TableColumn prefWidth="139.0" text="Часы" />
+                     </columns>
+                     <columnResizePolicy>
+                        <TableView fx:constant="CONSTRAINED_RESIZE_POLICY" />
+                     </columnResizePolicy>
+                  </TableView>
+                  <Label layoutX="21.0" layoutY="14.0" prefHeight="52.0" prefWidth="134.0" text="Дата начала:">
+                     <font>
+                        <Font size="14.0" />
+                     </font>
+                  </Label>
+                  <DatePicker id="startDate2" fx:id="startDate2" layoutX="113.0" layoutY="25.0" />
+                  <Label layoutX="21.0" layoutY="66.0" prefHeight="52.0" prefWidth="134.0" text="Дата конца:">
+                     <font>
+                        <Font size="14.0" />
+                     </font>
+                  </Label>
+                  <DatePicker id="endDate2" fx:id="endDate2" layoutX="113.0" layoutY="77.0" />
+                  <Button id="loadEmptyHours" fx:id="loadEmptyHours" layoutX="358.0" layoutY="43.0" mnemonicParsing="false" prefHeight="46.0" prefWidth="130.0" stylesheets="@styles/main.css" text="Проверить дни" textFill="WHITE">
+                     <font>
+                        <Font size="14.0" />
+                     </font>
+                  </Button>
+               </children>
+            </AnchorPane>
+         </content>
+      </Tab>
         <Tab text="Проекты">
             <content>
                 <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="180.0" prefWidth="200.0">

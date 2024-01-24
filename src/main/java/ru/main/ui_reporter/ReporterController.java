@@ -115,6 +115,21 @@ public class ReporterController {
     @FXML
     private TextField userPasswordTextField;
 
+    @FXML
+    private DatePicker startDate2;
+
+    @FXML
+    private Button loadEmptyHours;
+
+    @FXML
+    private TableView<ReportEntity> emptyReports;
+
+    @FXML
+    private DatePicker endDate2;
+
+    @FXML
+    private Tab sendReportsTab;
+
     private String userLogin;
 
     private String userToken;
@@ -124,8 +139,6 @@ public class ReporterController {
     private List<TableEntity> projects;
 
     private List<TableEntity> actions;
-
-    private List<ReportEntity> reportEntities;
 
     private HostServices hostServices;
 
@@ -146,6 +159,7 @@ public class ReporterController {
         sendReportButton.setOnMouseClicked(mouseEvent -> sendReport());
         changeUserButton.setOnMouseClicked(mouseEvent -> changeUserControl());
         saveUserButton.setOnMouseClicked(mouseEvent -> saveUserControl());
+
         Gson gson = new Gson();
         try (FileReader reader = new FileReader("user.json")) {
             Type type = new TypeToken<Map<String, String>>() {
@@ -157,15 +171,16 @@ public class ReporterController {
         } catch (IOException e) {
             e.printStackTrace();
         }
+
         userLoginField.setText(userLogin);
         tokenField.setText(userToken);
         userPasswordTextField.setText(userPassword);
 
         projectsTable.getColumns().clear();
         TableColumn<TableEntity, Integer> projectNumber = new TableColumn<>("№");
-        projectNumber.setCellValueFactory(new PropertyValueFactory<TableEntity, Integer>("number"));
+        projectNumber.setCellValueFactory(new PropertyValueFactory<>("number"));
         TableColumn<TableEntity, String> projectName = new TableColumn<>("Добавленные проекты");
-        projectName.setCellValueFactory(new PropertyValueFactory<TableEntity, String>("name"));
+        projectName.setCellValueFactory(new PropertyValueFactory<>("name"));
         projectsTable.getColumns().add(projectNumber);
         projectsTable.getColumns().add(projectName);
         projectsTable.getSelectionModel().setCellSelectionEnabled(true);
@@ -181,9 +196,9 @@ public class ReporterController {
 
         actionsTable.getColumns().clear();
         TableColumn<TableEntity, Integer> actionNumber = new TableColumn<>("№");
-        actionNumber.setCellValueFactory(new PropertyValueFactory<TableEntity, Integer>("number"));
+        actionNumber.setCellValueFactory(new PropertyValueFactory<>("number"));
         TableColumn<TableEntity, String> actionName = new TableColumn<>("Добавленные действия");
-        actionName.setCellValueFactory(new PropertyValueFactory<TableEntity, String>("name"));
+        actionName.setCellValueFactory(new PropertyValueFactory<>("name"));
         actionsTable.getColumns().add(actionNumber);
         actionsTable.getColumns().add(actionName);
         actionsTable.getSelectionModel().setCellSelectionEnabled(true);
@@ -199,16 +214,27 @@ public class ReporterController {
 
         reportsTable.getColumns().clear();
         TableColumn<ReportEntity, LocalDate> reportDate = new TableColumn<>("Дата");
-        reportDate.setCellValueFactory(new PropertyValueFactory<ReportEntity, LocalDate>("date"));
+        reportDate.setCellValueFactory(new PropertyValueFactory<>("date"));
         TableColumn<ReportEntity, String> reportProjectName = new TableColumn<>("Проект");
-        reportProjectName.setCellValueFactory(new PropertyValueFactory<ReportEntity, String>("projectName"));
-        TableColumn<ReportEntity, Long> reportHours = new TableColumn<>("Часы");
-        reportHours.setCellValueFactory(new PropertyValueFactory<ReportEntity, Long>("hours"));
+        reportProjectName.setCellValueFactory(new PropertyValueFactory<>("projectName"));
+        TableColumn<ReportEntity, Double> reportHours = new TableColumn<>("Часы");
+        reportHours.setCellValueFactory(new PropertyValueFactory<>("hours"));
         reportsTable.getSelectionModel().setCellSelectionEnabled(true);
         reportsTable.getColumns().addAll(
                 reportDate,
                 reportProjectName,
                 reportHours
+        );
+
+        emptyReports.getColumns().clear();
+        TableColumn<ReportEntity, LocalDate> emptyReportDate = new TableColumn<>("Дата");
+        emptyReportDate.setCellValueFactory(new PropertyValueFactory<>("date"));
+        TableColumn<ReportEntity, Double> emptyReportHours = new TableColumn<>("Часы");
+        emptyReportHours.setCellValueFactory(new PropertyValueFactory<>("hours"));
+        emptyReports.getSelectionModel().setCellSelectionEnabled(true);
+        emptyReports.getColumns().addAll(
+                emptyReportDate,
+                emptyReportHours
         );
 
         try (FileReader reader = new FileReader("projects.json")) {
@@ -249,7 +275,12 @@ public class ReporterController {
         startDatePicker1.setValue(LocalDate.now().minusDays(7L));
         endDatePicker1.setValue(LocalDate.now());
 
+        startDate2.setValue(LocalDate.now().minusDays(7L));
+        endDate2.setValue(LocalDate.now());
+
         loadReportsButton.setOnMouseClicked(mouseEvent -> loadReports());
+
+        loadEmptyHours.setOnMouseClicked(mouseEvent -> loadEmptyReports());
 
         reportsTable.setRowFactory(tv -> {
             TableRow<ReportEntity> row = new TableRow<>();
@@ -280,6 +311,20 @@ public class ReporterController {
             });
             return row;
         });
+
+        emptyReports.setRowFactory(tv -> {
+            TableRow<ReportEntity> row = new TableRow<>();
+            row.setOnMouseClicked(event -> {
+                ReportEntity rowData = row.getItem();
+                if (!row.isEmpty()) {
+                    if (event.getButton().equals(MouseButton.PRIMARY)) {
+                        startDatePicker.setValue(rowData.getDate());
+                        tabPane.getSelectionModel().select(sendReportsTab);
+                    }
+                }
+            });
+            return row;
+        });
     }
 
     public void postInitialize(){
@@ -291,8 +336,75 @@ public class ReporterController {
         }
     }
 
+    public void loadEmptyReports(){
+        if (checkDates(startDate2, endDate2)){
+            OkHttpClient client = UtilityClass.getDummyClient();
+            Map<String, Object> requestBody = new HashMap<>();
+            requestBody.put("token", userToken);
+            requestBody.put("employee", userLogin);
+            requestBody.put("from", startDate2.getValue().toString());
+            requestBody.put("to", endDate2.getValue().toString());
+            String apiUrl = "https://reporter.corp.local/api/empty_reports";
+            Gson gson = new Gson();
+            String json = gson.toJson(requestBody);
+            RequestBody body = RequestBody.create(json, MediaType.parse("application/json"));
+            Request request = new Request.Builder()
+                    .url(apiUrl)
+                    .post(body)
+                    .build();
+            try {
+                Response response = client.newCall(request).execute();
+                if (!response.isSuccessful())
+                    throw new RuntimeException("Пустые часы не загружены. Причина: " + Objects.requireNonNull(response.body()).string());
+                else {
+                    Type type = new TypeToken<Map<String, Object>>() {
+                    }.getType();
+                    assert response.body() != null;
+                    Map<String, Object> responseData = gson.fromJson(response.body().string(), type);
+                    List<ReportEntity> emptyReportsList = new ArrayList<>();
+                    for (Map<String, Object> emptyDates : Objects.requireNonNullElse((List<Map<String, Object>>) responseData.get("dates")
+                            , new ArrayList<Map<String, Object>>())) {
+                        emptyReportsList.add(ReportEntity.builder()
+                                .date(LocalDate.parse(((String) emptyDates.get("date")).substring(0, 10)))
+                                .hours(Double.valueOf((String) emptyDates.get("hours")))
+                                .build());
+                    }
+                    emptyReports.setItems(FXCollections.observableList(emptyReportsList));
+                    TableColumn<ReportEntity, ?> date = emptyReports.getColumns().get(0);
+                    date.setSortType(TableColumn.SortType.DESCENDING);
+                    emptyReports.getSortOrder().clear();
+                    emptyReports.getSortOrder().add(date);
+                    response.close();
+                }
+            } catch (Exception e) {
+                Alert alert = new Alert(Alert.AlertType.ERROR);
+                ((Stage) alert.getDialogPane().getScene().getWindow()).getIcons().add(new Image("file:report_icon.png"));
+                alert.setTitle("Ошибка");
+                alert.setHeaderText(null);
+                alert.setContentText("Пустые часы не загружены");
+                TextArea textArea = new TextArea(e.getMessage());
+                textArea.setEditable(false);
+                textArea.setWrapText(true);
+                textArea.setMaxWidth(Double.MAX_VALUE);
+                textArea.setMaxHeight(Double.MAX_VALUE);
+                GridPane.setVgrow(textArea, Priority.ALWAYS);
+                GridPane.setHgrow(textArea, Priority.ALWAYS);
+                GridPane expContent = new GridPane();
+                expContent.setMaxWidth(Double.MAX_VALUE);
+                expContent.add(textArea, 0, 1);
+                alert.getDialogPane().setStyle("-fx-font-size: 14px; -fx-background-color: #ffffff;");
+                alert.getDialogPane().getStylesheets().add(
+                        Objects.requireNonNull(getClass().getResource("/ru/main/ui_reporter/styles/main.css")).toExternalForm());
+                alert.getDialogPane().setExpandableContent(expContent);
+                alert.setResizable(true);
+                alert.showAndWait();
+                throw new RuntimeException(e);
+            }
+        }
+    }
+
     public void loadReports() {
-        if (checkReportsDate()) {
+        if (checkDates(startDatePicker1, endDatePicker1)) {
             OkHttpClient client = UtilityClass.getDummyClient();
             Map<String, Object> requestBody = new HashMap<>();
             requestBody.put("token", userToken);
@@ -310,13 +422,13 @@ public class ReporterController {
             try {
                 Response response = client.newCall(request).execute();
                 if (!response.isSuccessful())
-                    throw new RuntimeException("Отчеты не загружены. Причина: " + response.body().string());
+                    throw new RuntimeException("Отчеты не загружены. Причина: " + Objects.requireNonNull(response.body()).string());
                 else {
                     Type type = new TypeToken<Map<String, Object>>() {
                     }.getType();
                     assert response.body() != null;
                     Map<String, Object> responseData = gson.fromJson(response.body().string(), type);
-                    reportEntities = new ArrayList<>();
+                    List<ReportEntity> reportEntities = new ArrayList<>();
                     for (Map<String, Object> report : (List<Map<String, Object>>) responseData.get("reports")) {
                         Optional<TableEntity> project = projects.stream()
                                 .filter(p -> Objects.equals(p.getId(), ((Double) report.get("project")).longValue()))
@@ -341,6 +453,7 @@ public class ReporterController {
                     date.setSortType(TableColumn.SortType.DESCENDING);
                     reportsTable.getSortOrder().clear();
                     reportsTable.getSortOrder().add(date);
+                    response.close();
                 }
             } catch (Exception e) {
                 Alert alert = new Alert(Alert.AlertType.ERROR);
@@ -360,7 +473,7 @@ public class ReporterController {
                 expContent.add(textArea, 0, 1);
                 alert.getDialogPane().setStyle("-fx-font-size: 14px; -fx-background-color: #ffffff;");
                 alert.getDialogPane().getStylesheets().add(
-                        getClass().getResource("/ru/main/ui_reporter/styles/main.css").toExternalForm());
+                        Objects.requireNonNull(getClass().getResource("/ru/main/ui_reporter/styles/main.css")).toExternalForm());
                 alert.getDialogPane().setExpandableContent(expContent);
                 alert.setResizable(true);
                 alert.showAndWait();
@@ -369,26 +482,26 @@ public class ReporterController {
         }
     }
 
-    private boolean checkReportsDate() {
+    private boolean checkDates(DatePicker startDate, DatePicker endDate) {
         boolean isNotEmpty = true;
         boolean isDatesCorrect = true;
-        if (startDatePicker1.getValue() == null || endDatePicker1.getValue() == null) {
-            if (startDatePicker1.getValue() == null)
-                startDatePicker1.setStyle("-fx-border-color: #ff0000;");
+        if (startDate.getValue() == null || endDate.getValue() == null) {
+            if (startDate.getValue() == null)
+                startDate.setStyle("-fx-border-color: #ff0000;");
             else
-                startDatePicker1.setStyle("-fx-border-color: transparent;");
-            if (endDatePicker1.getValue() == null)
-                endDatePicker1.setStyle("-fx-border-color: #ff0000;");
+                startDate.setStyle("-fx-border-color: transparent;");
+            if (endDate.getValue() == null)
+                endDate.setStyle("-fx-border-color: #ff0000;");
             else
-                endDatePicker1.setStyle("-fx-border-color: transparent;");
+                endDate.setStyle("-fx-border-color: transparent;");
             isNotEmpty = false;
-        } else if (startDatePicker1.getValue().isAfter(endDatePicker1.getValue())) {
-            startDatePicker1.setStyle("-fx-border-color: #ff0000;");
-            endDatePicker1.setStyle("-fx-border-color: #ff0000;");
+        } else if (startDate.getValue().isAfter(endDate.getValue())) {
+            startDate.setStyle("-fx-border-color: #ff0000;");
+            endDate.setStyle("-fx-border-color: #ff0000;");
             isDatesCorrect = false;
         } else {
-            startDatePicker1.setStyle("-fx-border-color: transparent;");
-            endDatePicker1.setStyle("-fx-border-color: transparent;");
+            startDate.setStyle("-fx-border-color: transparent;");
+            endDate.setStyle("-fx-border-color: transparent;");
         }
         if (!isDatesCorrect) {
             UtilityClass.createAlert(Alert.AlertType.ERROR, "Ошибка", null,
@@ -648,7 +761,7 @@ public class ReporterController {
             UtilityClass.createAlert(Alert.AlertType.ERROR, "Ошибка", null,
                     "Не все поля заполнены", false, this.getClass());
         }
-        return (isNotEmpty && isDatesCorrect);
+        return isNotEmpty;
     }
 
     private Long getActionId(String actionName) {
@@ -664,8 +777,7 @@ public class ReporterController {
             Gson gson = new Gson();
             Type type = new TypeToken<List<Map<String, Object>>>() {
             }.getType();
-            assert response.body() != null;
-            List<Map<String, Object>> responseData = gson.fromJson(response.body().string(), type);
+            List<Map<String, Object>> responseData = gson.fromJson(Objects.requireNonNull(response.body()).string(), type);
             return ((Double) responseData.get(0).get("id")).longValue();
         } catch (Exception e) {
             UtilityClass.createAlert(Alert.AlertType.ERROR, "Ошибка", null,
@@ -688,8 +800,7 @@ public class ReporterController {
             Gson gson = new Gson();
             Type type = new TypeToken<List<Map<String, Object>>>() {
             }.getType();
-            assert response.body() != null;
-            List<Map<String, Object>> responseData = gson.fromJson(response.body().string(), type);
+            List<Map<String, Object>> responseData = gson.fromJson(Objects.requireNonNull(response.body()).string(), type);
             return ((Double) responseData.get(0).get("id")).longValue();
         } catch (Exception e) {
             UtilityClass.createAlert(Alert.AlertType.ERROR, "Ошибка", null,
@@ -741,7 +852,8 @@ public class ReporterController {
                 try {
                     Response response = client.newCall(request).execute();
                     if (!response.isSuccessful())
-                        throw new RuntimeException("Отчет: " + report + " не создан. Причина: " + response.body().string());
+                        throw new RuntimeException("Отчет: " + report + " не создан. Причина: " + Objects.requireNonNull(response.body()).string());
+                    response.close();
                 } catch (Exception e) {
                     Alert alert = new Alert(Alert.AlertType.ERROR);
                     ((Stage) alert.getDialogPane().getScene().getWindow()).getIcons().add(new Image("file:report_icon.png"));
@@ -761,7 +873,7 @@ public class ReporterController {
                     alert.getDialogPane().setExpandableContent(expContent);
                     alert.getDialogPane().setStyle("-fx-font-size: 14px; -fx-background-color: #ffffff;");
                     alert.getDialogPane().getStylesheets().add(
-                            getClass().getResource("/ru/main/ui_reporter/styles/main.css").toExternalForm());
+                            Objects.requireNonNull(getClass().getResource("/ru/main/ui_reporter/styles/main.css")).toExternalForm());
                     alert.setResizable(true);
                     alert.showAndWait();
                     throw new RuntimeException(e);
