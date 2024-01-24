@@ -319,6 +319,7 @@ public class ReporterController {
                 if (!row.isEmpty()) {
                     if (event.getButton().equals(MouseButton.PRIMARY)) {
                         startDatePicker.setValue(rowData.getDate());
+                        hoursSpinner.getEditor().setText(rowData.getHours().toString().replace('.', ','));
                         tabPane.getSelectionModel().select(sendReportsTab);
                     }
                 }
